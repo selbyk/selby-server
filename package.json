@@ -2,8 +2,15 @@
   "name": "selby-server",
   "version": "0.0.1",
   "description": "selby-server is an koa/socket.io based ES6 node server developed with security and convience in mind.",
-  "main": "server.js",
+  "repository": "https://selbyk@bitbucket.org/selbyk/selby-server.git",
+  "main": "selby-server.js",
+  "engine": "node >= 5.6.0",
   "scripts": {
+    "start": ". ~/.nvm/nvm.sh && pm2 restart selby-server.js",
+    "stop": ". ~/.nvm/nvm.sh && pm2 stop selby-server.js",
+    "setup": ". ~/.nvm/nvm.sh && npm i",
+    "build": ". ~/.nvm/nvm.sh && grunt",
+    "b": ". ~/.nvm/nvm.sh && grunt",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Selby Kendrick",

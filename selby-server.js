@@ -1,18 +1,20 @@
 'use strict';
 /**
  * selby-server is an koa/socket.io based ES6 node server developed
- * with security and convience in mind.
+ * with security and convience in mind. Its purpose is to replace the
+ * current server running https://selby.io/
  * @module selby-server
  */
+// Import configuration
 import config from './config';
+import logger from './lib/logger';
 import koa from 'koa.io';
 import compress from 'koa-compress';
 import mount from 'koa-mount';
 import serve from 'koa-static';
 import koaBody from 'koa-body';
 
-import logger from './lib/logger';
-logger.info('loaded logger');
+logger.info('required modules imported, lets get started');
 
 /*
   Setup some middleware to serve our public dirs

@@ -32,3 +32,12 @@ node_modules
 
 # Runtime configuration for swagger app
 config/runtime.yaml
+
+# Grunt stuff
+.rebooted
+
+# Runtime build files
+runtime
+
+# Docs can be down manually
+docs

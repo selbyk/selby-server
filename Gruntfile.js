@@ -125,7 +125,7 @@ module.exports = function(grunt) {
     },
     jsdoc: {
       dist: {
-        src: ['server.js', 'handlers/**/*.js', 'models/**/*.js', 'tests/**/*.js'],
+        src: ['selby-server.js', '**/*.js', '!Gruntfile.js', '!node_modules/**/*', '!runtime/**/*'],
         options: {
           destination: 'docs/jsdocs'
         }
