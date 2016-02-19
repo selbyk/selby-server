@@ -10,9 +10,10 @@ import config from './config';
 import logger from './lib/logger';
 import Koa from 'koa';
 import IO from 'koa-socket';
+import Router from 'koa-router';
 import koaConvert from 'koa-convert';
 import compress from 'koa-compress';
-import mount from 'koa-mount';
+//import mount from 'koa-mount';
 import serve from 'koa-static-server';
 import koaBody from 'koa-body';
 import koaJson from 'koa-json';
@@ -23,31 +24,27 @@ logger.info('required modules imported, lets get started');
   Setup some middleware to serve our public dirs
  */
 //let serveDocs = serve({rootDir: 'docs', rootPath: '/', index: 'index.html'});
-let serveJsonSpec = function*(next) {
-  //yield next;
-  //this.status = 200;
-  //this.set('Content-Type', 'application/json; charset=utf-8');
-  //this.type = 'text';
-  yield next;
-  this.set({
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Origin": "* http://localhost:4200 http://petstore.swagger.io/"
-  });
-
-  this.body = config.spec;
-};
 
 /*
   Instantiate our koa app
  */
 const app = new Koa();
+const router = new Router();
 const io = new IO();
+
+router.get('/swagger.json', function(ctx) {
+  ctx.set({
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Origin": "* http://localhost:4200 http://petstore.swagger.io/"
+  });
+  ctx.body = config.spec;
+});
 
 /*
   Configure our middleware
  */
 app
-  .use(koaConvert(mount('/swagger.json', serveJsonSpec)))
+  .use(router.routes())
   .use(koaConvert(function*(next) {
     this.set({
       "Access-Control-Allow-Methods": "GET POST",
@@ -107,7 +104,8 @@ io.use(async(ctx, next) => {
 
 io.attach(app);
 
-io.on('connection', () => {
+io
+  .on('connection', () => {
     logger.info('client connected');
   })
   .on('new message', function*() {
