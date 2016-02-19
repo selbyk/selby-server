@@ -8,107 +8,121 @@
 // Import configuration
 import config from './config';
 import logger from './lib/logger';
-import koa from 'koa.io';
+import Koa from 'koa';
+import IO from 'koa-socket';
+import koaConvert from 'koa-convert';
 import compress from 'koa-compress';
 import mount from 'koa-mount';
-import serve from 'koa-static';
+import serve from 'koa-static-server';
 import koaBody from 'koa-body';
+import koaJson from 'koa-json';
 
 logger.info('required modules imported, lets get started');
 
 /*
   Setup some middleware to serve our public dirs
  */
-let serveDocs = serve('./docs');
+//let serveDocs = serve({rootDir: 'docs', rootPath: '/', index: 'index.html'});
 let serveJsonSpec = function*(next) {
+  //yield next;
+  //this.status = 200;
+  //this.set('Content-Type', 'application/json; charset=utf-8');
+  //this.type = 'text';
   yield next;
-  this.set('Content-Type', 'application/json; charset=utf-8');
-  this.body = JSON.stringify(config.spec);
+  this.set({
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Origin": "* http://localhost:4200 http://petstore.swagger.io/"
+  });
+
+  this.body = config.spec;
 };
 
 /*
   Instantiate our koa app
  */
-let app = koa();
+const app = new Koa();
+const io = new IO();
 
 /*
   Configure our middleware
  */
 app
-  .use(compress({
+  .use(koaConvert(mount('/swagger.json', serveJsonSpec)))
+  .use(koaConvert(function*(next) {
+    this.set({
+      "Access-Control-Allow-Methods": "GET POST",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Accept": "application/json",
+      "Content-Type": "application/json; charset=utf-8",
+      "Access-Control-Allow-Origin": "* http://localhost:4200 http://petstore.swagger.io/"
+    });
+    var start = new Date();
+    yield next;
+    var ms = new Date() - start;
+    logger.info(`${this.method} ${this.url} ${this.status} ${ms}ms`);
+    this.set('X-Response-Time', ms + 'ms');
+  }))
+  .use(koaConvert(koaJson()))
+  .use(koaConvert(compress({
     filter: function(content_type) {
       return /text/gi.test(content_type);
     },
     threshold: 2048,
     flush: require('zlib').Z_SYNC_FLUSH
-  }))
-  .use(koaBody({
+  })))
+  .use(koaConvert(koaBody({
     formidable: {
       uploadDir: __dirname
     }
-  }))
-  .use(logger.koaMiddleware())
-  .use(mount('/', serveDocs))
-  .use(mount('/swagger.json', serveJsonSpec))
-  .use(function*(next) { // headers w x-response-time
-    var start = new Date().valueOf();
-    yield next;
-    var ms = new Date().valueOf() - start;
-    this.set({
-      "Access-Control-Allow-Methods": "GET",
-      "Access-Control-Allow-Headers": "Content-Type",
-      "Accept": "application/json",
-      "Content-Type": "text/json; charset=utf-8",
-      "Access-Control-Allow-Origin": "http://localhost:4200"
-    });
-    this.set('X-Response-Time', ms + 'ms');
-  })
-  .use(function*(next) {
-    yield next;
-    if (!this.body) {
-      return;
-    } else {
-      this.set('Content-Length', this.body.length);
-    }
-  })
-  .use(function*(next) {
-    yield next;
-    this.status = 404;
-    this.body = 'U is lost boi'; //JSON.stringify(this.request.body);
-  })
-  .use(function*() {
-    this.body = yield this.request.body;
-  })
-  .use(function*(next) {
-    var start = new Date();
-    yield next;
-    var ms = new Date() - start;
-    logger.info(`${this.method} + ${this.url} ${ms} ms`);
-  });
+  })))
+  .use(koaConvert(logger.koaMiddleware()))
+  .use(koaConvert(serve({
+    rootDir: 'docs/jsdocs',
+    rootPath: '',
+    index: 'index.html'
+  })));
 
 /*
   Setup the sockets
  */
-app.io.use(function*(next) {
-    // on connect
+
+/**
+ * io middlewares
+ */
+// jshint ignore:start
+io.use(async(ctx, next) => {
+  logger.info('io middleware');
+  const start = new Date;
+  await next();
+  const ms = new Date - start;
+  logger.info(`WS ${ ms }ms`);
+});
+// jshint ignore:end
+// jshint ignore:start
+io.use(async(ctx, next) => {
+  ctx.teststring = 'test';
+  await next();
+});
+// jshint ignore:end
+
+io.attach(app);
+
+io.on('connection', () => {
     logger.info('client connected');
-    yield next;
-    // on disconnect
-    logger.info('client disconnected');
   })
-  .route('new message', function*() {
+  .on('new message', function*() {
     // we tell the client to execute 'new message'
     var message = this.args[0];
     this.broadcast.emit('new message', message);
     //yield;
   })
-  .route('log', function*() {
+  .on('log', function*() {
     // we tell the client to execute 'new message'
     var log = this.args[0];
     this.broadcast.emit('log', log);
     //yield;
   })
-  .route('pong', function*() {
+  .on('pong', function*() {
     // we tell the client to execute 'new message'
     console.log("fycj");
     let ping = this.args[0];
@@ -120,12 +134,12 @@ app.io.use(function*(next) {
 /*
   Start listening for incoming http requests and socket connections
  */
-app.listen(5644, function() {
-  logger.addSocketTransport(app.io.sockets);
+app.server.listen(5644, function() {
+  logger.addSocketTransport(io);
   let pingIt = () => {
     let ms = (new Date()).getTime();
     logger.log('info', 'Pinging clients...');
-    app.io.sockets.emit('ping', parseInt(ms));
+    io.broadcast('ping', parseInt(ms));
     setTimeout(pingIt, 10000);
   };
   setTimeout(pingIt, 1000);

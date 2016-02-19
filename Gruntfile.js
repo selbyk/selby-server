@@ -37,7 +37,7 @@ module.exports = function(grunt) {
       build: {
         files: [{
           expand: true,
-          src: ['server.js','config/**/*.js', 'sockets/**/*.js', 'handlers/**/*.js','lib/**/*.js','middleware/**/*.js','models/**/*.js','tests/**/*.js','transports/**/*.js'],
+          src: ['selby-server.js','config/**/*.js', 'sockets/**/*.js', 'handlers/**/*.js','lib/**/*.js','middleware/**/*.js','models/**/*.js','tests/**/*.js','transports/**/*.js'],
           dest: 'runtime/server',
           ext: '.js'
         }]
@@ -72,7 +72,7 @@ module.exports = function(grunt) {
     **/
     nodemon: {
       dev: {
-        script: 'runtime/server/server.js',
+        script: 'runtime/server/selby-server.js',
         options: {
           /** Environment variables required by the NODE application **/
           env: {
@@ -125,7 +125,8 @@ module.exports = function(grunt) {
     },
     jsdoc: {
       dist: {
-        src: ['selby-server.js', '**/*.js', '!Gruntfile.js', '!node_modules/**/*', '!runtime/**/*'],
+        cwd: '',
+        src: ['runtime/server/**/*.js'],
         options: {
           destination: 'docs/jsdocs'
         }
