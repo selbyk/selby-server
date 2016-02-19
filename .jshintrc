@@ -11,10 +11,10 @@
     "waitsFor": false,
     "runs": false
   },
-  "esversion": 6,
   "noyield": true,
   "node": true,
   "esnext": true,
+  "experimental": ["asyncawait"],
   "browser": true,
   "boss": false,
   "curly": false,

@@ -5,140 +5,74 @@
  * current server running https://selby.io/
  * @module selby-server
  */
-// Import configuration
-import config from './config';
-import fs from 'fs';
-fs.writeFile('./docs/swagger.json', JSON.stringify(config.spec, null, 2));//, callback);
-
+// Import our logger
 import logger from './lib/logger';
-import Koa from 'koa';
-import IO from 'koa-socket';
-import Router from 'koa-router';
+// Load configuration
+import config from './config';
+// Write Swagger spec to file so it can later be served
+import fs from 'fs';
+fs.writeFile('./docs/swagger.json', JSON.stringify(config.spec, null, 2)); //, callback);
 
-import send from 'koa-send';
+// Import koa
+import Koa from 'koa';
+
+// Import koa middleware
+import cors from './middleware/koa-cors-async';
+import passport from './middleware/passport';
 import koaConvert from 'koa-convert';
 import compress from 'koa-compress';
-//import mount from 'koa-mount';
-import serve from 'koa-static-server';
-import koaBody from 'koa-body';
-import koaJson from 'koa-json';
+import KoaBody from 'koa-async-body';
+import session from 'koa-generic-session';
+
+// Import our routes and sockets
+import router from './router';
+import io from './sockets';
 
 logger.info('required modules imported, lets get started');
 
 /*
-  Setup some middleware to serve our public dirs
- */
-//let serveDocs = serve({rootDir: 'docs', rootPath: '/', index: 'index.html'});
-
-/*
-  Instantiate our koa app
+  Instantiate our koa app and middleware
  */
 const app = new Koa();
-const router = new Router();
-const io = new IO();
-
-router
-.get(':path', async (ctx) => {
-  logger.info('index request');
-  console.log(ctx.params);
-  if(!ctx.params.path || ctx.params.path.length < 1) {
-    await send(ctx, `docs/jsdocs/index.html`);
-  } else {
-    await send(ctx, `docs/jsdocs/${ctx.params.path}`);
+const koaBody = new KoaBody({
+  limits: {
+    fileSize: 1024 * 1024 * 2,
+    files: 1,
+    parts: 1000,
   }
-})
-.get('/swagger.json', async (ctx) => {
-  await send(ctx, 'docs/swagger.json');
 });
+
+app.keys = ['secret'];
 
 /*
   Configure our middleware
  */
 app
+  .use(async(ctx, next) => {
+    const start = new Date();
+    await next();
+    const ms = new Date() - start;
+    //logger.info(`${ctx.method} ${ctx.url} ${ctx.status} ${ms}ms`);
+    ctx.set('X-Response-Time', ms + 'ms');
+  })
+  .use(koaConvert(logger.koaMiddleware()))
+  .use(cors())
+  .use(koaBody)
+  .use(koaConvert(session()))
+  .use(passport.initialize())
+  .use(passport.session())
   .use(router.routes())
-  .use(koaConvert(function*(next) {
-    this.set({
-      "Access-Control-Allow-Methods": "GET POST",
-      "Access-Control-Allow-Headers": "Content-Type",
-      "Accept": "application/json",
-      "Content-Type": "application/json; charset=utf-8",
-      "Access-Control-Allow-Origin": "* http://localhost:4200 http://petstore.swagger.io/"
-    });
-    var start = new Date();
-    yield next;
-    var ms = new Date() - start;
-    logger.info(`${this.method} ${this.url} ${this.status} ${ms}ms`);
-    this.set('X-Response-Time', ms + 'ms');
-  }))
-  .use(koaConvert(koaJson()))
+  .use(router.allowedMethods())
   .use(koaConvert(compress({
     filter: function(content_type) {
       return /text/gi.test(content_type);
     },
     threshold: 2048,
     flush: require('zlib').Z_SYNC_FLUSH
-  })))
-  .use(koaConvert(koaBody({
-    formidable: {
-      uploadDir: __dirname
-    }
-  })))
-  .use(koaConvert(logger.koaMiddleware()))
-  .use(koaConvert(serve({
-    rootDir: 'docs/jsdocs',
-    rootPath: '',
-    index: 'index.html'
   })));
 
-/*
-  Setup the sockets
- */
-
-/**
- * io middlewares
- */
-// jshint ignore:start
-io.use(async(ctx, next) => {
-  logger.info('io middleware');
-  const start = new Date;
-  await next();
-  const ms = new Date - start;
-  logger.info(`WS ${ ms }ms`);
-});
-// jshint ignore:end
-// jshint ignore:start
-io.use(async(ctx, next) => {
-  ctx.teststring = 'test';
-  await next();
-});
-// jshint ignore:end
-
+// Attach our sockets to the koa app
 io.attach(app);
-
-io
-  .on('connection', () => {
-    logger.info('client connected');
-  })
-  .on('new message', function*() {
-    // we tell the client to execute 'new message'
-    var message = this.args[0];
-    this.broadcast.emit('new message', message);
-    //yield;
-  })
-  .on('log', function*() {
-    // we tell the client to execute 'new message'
-    var log = this.args[0];
-    this.broadcast.emit('log', log);
-    //yield;
-  })
-  .on('pong', function*() {
-    // we tell the client to execute 'new message'
-    console.log("fycj");
-    let ping = this.args[0];
-    let ms = (new Date()).getTime() - ping;
-    logger.log('info', parseInt(ms) + ' ms ping with fsfs at ' + parseInt(ping));
-    //yield;
-  });
 
 /*
   Start listening for incoming http requests and socket connections
