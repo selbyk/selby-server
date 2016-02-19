@@ -31,7 +31,7 @@ import io from './sockets';
 logger.info('required modules imported, lets get started');
 
 /*
-  Instantiate our koa app and middleware
+    Instantiate our koa app and middleware
  */
 const app = new Koa();
 const koaBody = new KoaBody({
@@ -45,37 +45,38 @@ const koaBody = new KoaBody({
 app.keys = ['secret'];
 
 /*
-  Configure our middleware
+    Configure our middleware
  */
 app
   .use(async(ctx, next) => {
     const start = new Date();
     await next();
     const ms = new Date() - start;
-    //logger.info(`${ctx.method} ${ctx.url} ${ctx.status} ${ms}ms`);
     ctx.set('X-Response-Time', ms + 'ms');
   })
   .use(koaConvert(logger.koaMiddleware()))
   .use(cors())
+  .use(koaConvert(compress({
+    filter: function(content_type) { // jshint ignore:line
+      return true; // /text/gi.test(content_type);
+    },
+    threshold: 2048,
+    flush: require('zlib').Z_SYNC_FLUSH
+  })))
   .use(koaBody)
   .use(koaConvert(session()))
   .use(passport.initialize())
   .use(passport.session())
   .use(router.routes())
-  .use(router.allowedMethods())
-  .use(koaConvert(compress({
-    filter: function(content_type) {
-      return /text/gi.test(content_type);
-    },
-    threshold: 2048,
-    flush: require('zlib').Z_SYNC_FLUSH
-  })));
+  .use(router.allowedMethods());
 
-// Attach our sockets to the koa app
+/*
+    Attach our sockets to the koa app
+ */
 io.attach(app);
 
 /*
-  Start listening for incoming http requests and socket connections
+    Start listening for incoming http requests and socket connections
  */
 app.server.listen(5644, function() {
   logger.addSocketTransport(io);

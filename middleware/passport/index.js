@@ -10,7 +10,9 @@ passport.deserializeUser(function(user, done) {
   done(null, user);
 });
 
-passport.use(new LocalStrategy( {usernameField: 'identification'},
+passport.use(new LocalStrategy({
+    usernameField: 'identification'
+  },
   function(username, password, done) {
     logger.info('Local Authentication Strategy');
 

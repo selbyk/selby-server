@@ -1,10 +1,16 @@
+/**
+ * Module responsible for setting up and managing socket connections
+ * @module router
+ */
 // Import our logger
 import path from 'path';
 import logger from '../lib/logger';
 import Router from 'koa-router';
 import send from 'koa-send';
 
+/** koa-router instance */
 const router = new Router();
+/** path to files being served (docs) */
 const rootPath = path.resolve('docs');
 
 module.exports = router

@@ -1,11 +1,12 @@
 'use strict';
-//import _ from 'lodash';
+/**
+ * Loads all files in the config/ directory and returns a single
+ * object
+ * @module config
+ */
 var _ = require('lodash');
 var util = require('util');
 var fs = require('fs');
-//var crypto = require('crypto');
-//var bcrypt = require('bcrypt');
-//var http = require('http');
 var path = require('path');
 
 let loadConfig = () => {
