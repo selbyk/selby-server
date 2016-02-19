@@ -1,10 +1,11 @@
 /**
- * Module responsible for setting up and managing
- * socket connections
+ * Module responsible for setting up and managing socket connections
  * @module sockets
  */
 import logger from '../lib/logger';
 import IO from 'koa-socket';
+
+import server from './server';
 
 /** the socket.io instance provided by koa-socket */
 const io = new IO();
@@ -51,5 +52,7 @@ io
     logger.log('info', parseInt(ms) + ' ms ping with fsfs at ' + parseInt(ping));
     //yield;
   });
+
+server(io);
 
 module.exports = io;
