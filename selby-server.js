@@ -7,10 +7,15 @@
  */
 // Import configuration
 import config from './config';
+import fs from 'fs';
+fs.writeFile('./docs/swagger.json', JSON.stringify(config.spec, null, 2));//, callback);
+
 import logger from './lib/logger';
 import Koa from 'koa';
 import IO from 'koa-socket';
 import Router from 'koa-router';
+
+import send from 'koa-send';
 import koaConvert from 'koa-convert';
 import compress from 'koa-compress';
 //import mount from 'koa-mount';
@@ -32,12 +37,18 @@ const app = new Koa();
 const router = new Router();
 const io = new IO();
 
-router.get('/swagger.json', function(ctx) {
-  ctx.set({
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Origin": "* http://localhost:4200 http://petstore.swagger.io/"
-  });
-  ctx.body = config.spec;
+router
+.get(':path', async (ctx) => {
+  logger.info('index request');
+  console.log(ctx.params);
+  if(!ctx.params.path || ctx.params.path.length < 1) {
+    await send(ctx, `docs/jsdocs/index.html`);
+  } else {
+    await send(ctx, `docs/jsdocs/${ctx.params.path}`);
+  }
+})
+.get('/swagger.json', async (ctx) => {
+  await send(ctx, 'docs/swagger.json');
 });
 
 /*
