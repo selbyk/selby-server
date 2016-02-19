@@ -12,6 +12,7 @@ import send from 'koa-send';
 const router = new Router();
 /** path to files being served (docs) */
 const rootPath = path.resolve('docs');
+const publicPath = path.resolve('public');
 
 module.exports = router
   .post('/auth', async(ctx, next) => {
@@ -41,8 +42,8 @@ module.exports = router
     });
   })
   .get('*', async(ctx, next) => { // jshint ignore:line
-    await next();
-    logger.debug('index request');
+
+    logger.info('index request');
     logger.debug(ctx.path);
     if (!ctx.path || ctx.path === '/') {
       ctx.path = '/index.html';
@@ -50,4 +51,18 @@ module.exports = router
     await send(ctx, ctx.path, {
       root: rootPath + '/jsdocs'
     });
+    await next();
+  }).get('*', async(ctx, next) => { // jshint ignore:line
+    await next();
+    logger.info('public request');
+    if (ctx.status === 404) {
+      logger.info('YEAH MAN! ' + ctx.path);
+      if(ctx.path === '/ui' || ctx.path === '/ui/') {
+        ctx.redirect('/ui/index.html');
+      } else {
+        await send(ctx, ctx.path, {
+          root: publicPath
+        });
+      }
+    }
   });
