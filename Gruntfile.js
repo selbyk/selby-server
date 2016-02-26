@@ -37,7 +37,7 @@ module.exports = function(grunt) {
       build: {
         files: [{
           expand: true,
-          src: ['selby-server.js','config/**/*.js', 'sockets/**/*.js', 'router/**/*.js','lib/**/*.js','middleware/**/*.js','models/**/*.js','tests/**/*.js','transports/**/*.js'],
+          src: ['selby-server.js','config/**/*.js', 'services/**/*.js', 'router/**/*.js','lib/**/*.js','middleware/**/*.js','models/**/*.js','tests/**/*.js','transports/**/*.js'],
           dest: 'runtime/server',
           ext: '.js'
         }]
@@ -47,7 +47,7 @@ module.exports = function(grunt) {
       options: {
         jshintrc: '.jshintrc'
       },
-      all: ['selby-server.js', 'router/**/*.js', 'sockets/**/*.js', 'models/**/*.js','lib/**/*.js','middleware/**/*.js', 'tests/**/*.js']
+      all: ['selby-server.js', 'router/**/*.js', 'services/**/*.js', 'models/**/*.js','lib/**/*.js','middleware/**/*.js', 'tests/**/*.js']
     },
     eslint: { // configure the task
       // lint your project's server code

@@ -26,7 +26,7 @@ import session from 'koa-generic-session';
 
 // Import our routes and sockets
 import router from './router';
-import io from './sockets';
+import io from './services';
 
 logger.info('required modules imported, lets get started');
 
@@ -80,13 +80,6 @@ io.attach(app);
  */
 app.server.listen(5644, function() {
   logger.addSocketTransport(io);
-  let pingIt = () => {
-    let ms = (new Date()).getTime();
-    logger.log('info', 'Pinging clients...');
-    io.broadcast('ping', parseInt(ms));
-    setTimeout(pingIt, 10000);
-  };
-  setTimeout(pingIt, 1000);
 });
 
 module.exports = app; // for testing

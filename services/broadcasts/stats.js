@@ -1,7 +1,18 @@
+'use strict';
+/**
+ * socket.io broadcast channels
+ * @namespace services/broadcasts
+ */
 import os from 'os';
 import moment from 'moment';
 
-let service = (io) => {
+/**
+ * broadcasts server stat updates
+ * @function stats
+ * @emits stats
+ * @memberof services/broadcasts
+ */
+let broadcast = (io) => {
   let broadcastLoop = () => {
     io.broadcast('server', {
       type: os.type(),
@@ -19,6 +30,7 @@ let service = (io) => {
     setTimeout(broadcastLoop, 1000);
   };
   broadcastLoop();
+  return io;
 };
 
-module.exports = service;
+module.exports = broadcast;
