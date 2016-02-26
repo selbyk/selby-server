@@ -1,9 +1,10 @@
 selby-server
 ---
 
-selby-server is an koa/socket.io based ES6 node server developed
+selby-server is an koa/socket.io based ES6/ES7 node server developed
 with security and convenience in mind. Its purpose is to replace
-the current server running https://selby.io/ and to be a template for future servers generated mostly from a spec document
+the current server running https://selby.io/ and to be a template for future
+servers generated mostly from a spec document
 
 ### Development Environment
 
@@ -45,6 +46,8 @@ $ npm i -g grunt-cli # No sudo with NVM
 ```bash
 $ git clone https://github.com/selbyk/selby-server.git
 $ cd selby-server
+$ git submodule init # clone custom middleware
+$ git submodule update
 $ npm i
 ```
 
