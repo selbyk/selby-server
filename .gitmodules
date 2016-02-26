@@ -1,0 +1,7 @@
+[submodule "koa-logger-winston"]
+	path = lib/koa-logger-winston
+	url = https://github.com/selbyk/koa-logger-winston
+
+[submodule "session"]
+  path = lib/session
+  url = https://github.com/selbyk/session
