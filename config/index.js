@@ -5,9 +5,9 @@
  * @module config
  */
 var _ = require('lodash');
-var util = require('util');
-var fs = require('fs');
-var path = require('path');
+//var util = require('util');
+//var fs = require('fs');
+//var path = require('path');
 
 let loadConfig = () => {
   return {

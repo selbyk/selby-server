@@ -15,14 +15,13 @@ fs.writeFile('./docs/swagger.json', JSON.stringify(config.spec, null, 2)); //, c
 
 // Import koa
 import Koa from 'koa';
+import Body from 'koa-async-body';
 
 // Import koa middleware
 import cors from './middleware/koa-cors-async';
 import passport from './middleware/passport';
-import koaConvert from 'koa-convert';
 import compress from 'koa-compress';
-import KoaBody from 'koa-async-body';
-import session from 'koa-generic-session';
+import session from './lib/session';
 
 // Import our routes and sockets
 import router from './router';
@@ -34,7 +33,7 @@ logger.info('required modules imported, lets get started');
     Instantiate our koa app and middleware
  */
 const app = new Koa();
-const koaBody = new KoaBody({
+const body = new Body({
   limits: {
     fileSize: 1024 * 1024 * 2,
     files: 1,
@@ -54,21 +53,27 @@ app
     const ms = new Date() - start;
     ctx.set('X-Response-Time', ms + 'ms');
   })
-  .use(koaConvert(logger.koaMiddleware()))
+  .use(logger.koaMiddleware())
   .use(cors())
-  .use(koaConvert(compress({
-    filter: function(content_type) { // jshint ignore:line
-      return true; // /text/gi.test(content_type);
+  .use(compress({
+    filter: function(contentType) { // jshint ignore:line
+      return true; // /text/i.test(content_type)
     },
     threshold: 2048,
     flush: require('zlib').Z_SYNC_FLUSH
-  })))
-  .use(koaBody)
-  .use(koaConvert(session()))
+  }))
+  .use(body)
+  .use(session({}))
   .use(passport.initialize())
   .use(passport.session())
   .use(router.routes())
-  .use(router.allowedMethods());
+  .use(router.allowedMethods())
+  .use(async(ctx, next) => {
+    await next();
+    let n = ctx.session.views || 0;
+    ctx.session.views = ++n;
+    logger.info(n + ' hits to the server since last restart');
+  });
 
 /*
     Attach our sockets to the koa app

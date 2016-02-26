@@ -1,6 +1,10 @@
+'use strict';
 /*global module:false*/
 module.exports = function(grunt) {
   require('jit-grunt')(grunt); // npm install --save-dev load-grunt-tasks
+
+  let jsFiles = ['selby-server.js','config/**/*.js', 'services/**/*.js', 'router/**/*.js','lib/**/*.js','middleware/**/*.js','models/**/*.js','tests/**/*.js','transports/**/*.js','!**/node_modules/**/*'];
+
   // Project configuration.
   grunt.initConfig({
     // Metadata.
@@ -37,7 +41,7 @@ module.exports = function(grunt) {
       build: {
         files: [{
           expand: true,
-          src: ['selby-server.js','config/**/*.js', 'services/**/*.js', 'router/**/*.js','lib/**/*.js','middleware/**/*.js','models/**/*.js','tests/**/*.js','transports/**/*.js'],
+          src: jsFiles,
           dest: 'runtime/server',
           ext: '.js'
         }]
@@ -47,7 +51,7 @@ module.exports = function(grunt) {
       options: {
         jshintrc: '.jshintrc'
       },
-      all: ['selby-server.js', 'router/**/*.js', 'services/**/*.js', 'models/**/*.js','lib/**/*.js','middleware/**/*.js', 'tests/**/*.js']
+      all: jsFiles
     },
     eslint: { // configure the task
       // lint your project's server code
@@ -57,7 +61,7 @@ module.exports = function(grunt) {
     },
     watch: {
       server: {
-        files: ['**/*.js', 'Gruntfile.js'],
+        files: jsFiles,
         tasks: ['build'],
         //options: {
         //  livereload: true
