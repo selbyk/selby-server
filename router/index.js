@@ -26,4 +26,4 @@ fs.readdir(routesPath, function(err, files) {
     });
 });
 
-module.exports = router;
+export default  router;

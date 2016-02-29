@@ -33,4 +33,4 @@ let route = (router) => {
   return router;
 };
 
-module.exports = route;
+export default  route;

@@ -20,4 +20,4 @@ let handler = (io) => {
   return io;
 };
 
-module.exports = handler;
+export default  handler;

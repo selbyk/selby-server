@@ -87,4 +87,4 @@ app.server.listen(5644, function() {
   logger.addSocketTransport(io);
 });
 
-module.exports = app; // for testing
+export default  app; // for testing

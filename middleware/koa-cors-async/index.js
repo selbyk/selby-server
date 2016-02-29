@@ -7,7 +7,7 @@
  * @return {GeneratorFunction}
  * @api public
  */
-module.exports = function getMiddleware(options) {
+export default  function getMiddleware(options) {
   options = options || {};
 
   var defaults = {
@@ -115,4 +115,4 @@ module.exports = function getMiddleware(options) {
       await next();
     }
   };
-};
+}

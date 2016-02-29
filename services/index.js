@@ -61,4 +61,4 @@ let loadServices = (io) => {
   return io;
 };
 
-module.exports = loadServices(io);
+export default  loadServices(io);

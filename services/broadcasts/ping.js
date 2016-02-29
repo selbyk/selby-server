@@ -23,4 +23,4 @@ let broadcast = (io) => {
   return io;
 };
 
-module.exports = broadcast;
+export default  broadcast;
